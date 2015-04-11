@@ -11,6 +11,7 @@
     <script type="text/javascript" src="style/js/gmu/core/gmu.js"></script>
     <script type="text/javascript" src="style/js/gmu/core/event.js"></script>
     <script type="text/javascript" src="style/js/gmu/core/widget.js"></script>
+    <script type="text/javascript" src="style/js/biz.js"></script>
 </head>
 <body>
 <div class="page-status">
@@ -26,10 +27,19 @@
         $('button').on('click',function( e ){
             var btn = $(e.target);
             //btn.addClass('ui-button-green');
-
-            $.getJSON('data/status.json?type=', function(remoteData){
-                if( remoteData.code === 200 && remoteData.result.success ){
-                    location.href = "page-map.html";
+            momentBiz.ajax({
+                functions : 'switchIsContributor',
+                data : {
+                    "username": momentBiz.getUserName(),
+                    "isContributor": (btn.attr('data-rel') === 'true')
+                },
+                success : function( remoteData ){
+                    console.log( 'switchIsContributor', remoteData );
+                    if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
+                        location.href = "page-map.html";
+                    }
+                },
+                error: function(xhr, type){
                 }
             });
         });

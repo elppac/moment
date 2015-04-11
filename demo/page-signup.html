@@ -14,12 +14,13 @@
     <script type="text/javascript" src="style/js/zepto.js"></script>
     <script type="text/javascript" src="style/js/AV.push.js"></script>
     <script type="text/javascript" src="style/js/transition.min.js"></script>
+    <script type="text/javascript" src="style/js/biz.js"></script>
 </head>
 <body class="page-signup">
     <div id="page-username" data-role="page">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" id="checkUserName" placeholder="用户名" value="kitty"/>
+                <input type="text" id="username" data-validator-element="checkUserName" placeholder="用户名" value="kitty"/>
                 <a data-validator="checkUserName" transition="slide" class="next-button" href="#page-mobile">Next</a>
             </div>
         </div>
@@ -35,17 +36,17 @@
     <div id="page-mobile" data-role="page" data-title="手机号">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" id="mobile" placeholder="手机号"/>
-                <input type="password" id="password" placeholder="密码"/>
-                <a data-validator="mobile" transition="slide" class="next-button" href="#page-verification">Next</a>
+                <input type="text" value="18058167549" id="phone" data-validator-element="sendVerifyCode" placeholder="手机号"/>
+                <input type="password" value="123456" id="password" placeholder="密码"/>
+                <a data-validator="sendVerifyCode" transition="slide" class="next-button" href="#page-verification">Next</a>
             </div>
         </div>
     </div>
     <div id="page-verification" data-role="page" data-title="手机验证">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" id="verification-code" placeholder="验证码"/>
-                <a data-validator="verification-code" transition="slide" class="next-button" href="#page-signup-successful">Next</a>
+                <input type="text" value="883769" id="code" data-validator-element="handleVerifyCode" placeholder="验证码"/>
+                <a data-validator="handleVerifyCode" transition="slide" class="next-button" href="#page-signup-successful">Next</a>
             </div>
         </div>
     </div>
@@ -58,42 +59,57 @@
         </div>
     </div>
     <script>
-        // 最简的示例代码，请换成自己的 appId 和 appKey
-        var appId = 'nddk6udki7vg06j1w2gqli72t0q64hxivnf2zvxdzm8sef55';
-        var appKey = 'qke60ogn5d7vpr4k3he9ykm9sibq6buifwxxrjkl2qytm480';
-
+        function signup( callback ){
+            momentBiz.ajax({
+                data : {
+                    "phone": $('#phone').val(),
+                    "username": $('#username').val(),
+                    "password": $('#password').val()
+                },
+                functions : 'regesterOnline',
+                success : function( remoteData ){
+                    if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
+                        callback(true);
+                    }else{
+                        callback(false);
+                    }
+                },
+                error: function(xhr, type){
+                    callback(false);
+                }
+            });
+        }
 
         $('[data-role="page"] [data-validator]').on('click',function( e ){
             var elm = $(e.target),
                 type = elm.data('validator'),
+                ipt = $('[data-validator-element="'+type+'"]'),
                 data = {};
 
-            data[type] = $('#'+type).val();
-
-            $.ajax({
-                type: 'POST',
-                url: 'https://leancloud.cn:443/1.1/functions/'+type,
-                data: JSON.stringify(data),
-                contentType: 'application/json',
-                headers : {
-                    'X-AVOSCloud-Application-Id' : 'nddk6udki7vg06j1w2gqli72t0q64hxivnf2zvxdzm8sef55',
-                    'X-AVOSCloud-Application-Key' : 'qke60ogn5d7vpr4k3he9ykm9sibq6buifwxxrjkl2qytm480'
-                },
-                success: function(remoteData){
-                    // Supposing this JSON payload was received:
-                    //   {"project": {"id": 42, "html": "<div>..." }}
-                    // append the HTML to context object.
+            data[ipt.prop('id')] = ipt.val();
+            momentBiz.ajax({
+                data : data,
+                functions : type,
+                success : function( remoteData ){
+                    //console.log( elm.attr('href') );
                     if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
                         var href = elm.attr('href');
                         if( href.indexOf('#') === 0 ){
-                            location.hash = href;
+                            if( href === '#page-signup-successful'){
+                                signup(function(boo){
+                                    if( boo ){
+                                        location.hash = href;
+                                    }
+                                });
+                            }else{
+                                location.hash = href;
+                            }
                         }else{
                             location.href = href;
                         }
                     }
                 },
                 error: function(xhr, type){
-                    alert('Ajax error!')
                 }
             });
 

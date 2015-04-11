@@ -36,6 +36,9 @@
     <script type="text/javascript" src="style/js/gmu/widget/slider/$autoplay.js"></script>
     <script type="text/javascript" src="style/js/gmu/widget/slider/$lazyloadimg.js"></script>
     <script type="text/javascript" src="style/js/gmu/widget/slider/imgzoom.js"></script>
+
+
+    <script type="text/javascript" src="style/js/biz.js"></script>
 </head>
 <body>
 <div class="home-page">
@@ -119,16 +122,18 @@
         }
 
 
-        function getData( type, callback ){
-            var url = 'data/list.json?type='+type;
-            if( type === 'slide' ){
-                url = 'data/query-request-to-me-list.json?type='+type;
-            }
-            $.getJSON(url, function(remoteData){
-                if( remoteData.code === 200 && remoteData.results.length>0 ){
-                    callback( remoteData.results  );
-                }else{
-                    callback( []  );
+        function getData( type, data, callback ){
+            momentBiz.ajax({
+                functions : type,
+                data : data,
+                success : function( remoteData ){
+                    if( remoteData.code === 200 && remoteData.results.length>0 ){
+                        callback( remoteData.results  );
+                    }else{
+                        callback( []  );
+                    }
+                },
+                error: function(xhr, type){
                 }
             });
         }
@@ -137,20 +142,35 @@
         var refresh = $('.ui-refresh').refresh({
             load: function (dir, type) {
                 var me = this;
-                getData('list',function( data ){
-                    dataListBox[dir == 'up' ? 'prepend' : 'append']( builderHtml( data, tpl ));
-                    me.afterDataLoading();    //数据加载完成后改变状态
+                momentBiz.getLocation(function( loc ){
+                    getData('queryUmberOnes',{
+                        latitude : loc[0],
+                        longitude : loc[1]
+                    },function( data ){
+                        dataListBox[dir == 'up' ? 'prepend' : 'append']( builderHtml( data, tpl ));
+                        me.afterDataLoading();    //数据加载完成后改变状态
+                    });
                 });
             }
         });
 
-        getData('list',function( data ){
-            dataListBox.html( builderHtml( data, tpl ));
+        momentBiz.getLocation(function( loc ){
+            getData('queryUmberOnes',{
+                latitude : loc[0],
+                longitude : loc[1]
+            },function( data ){
+                dataListBox.html( builderHtml( data, tpl ));
+            });
         });
 
 
+
         function requestToMeList(){
-            getData('slider',function( data ){
+            getData('queryRequestToMeList',{
+                "userId":momentBiz.getUserName(),
+                "offset":0,
+                "count":1
+            },function( data ){
                 if( data.length > 0 ){
                     sliderListBox.show();
                     sliderListBox.html( builderHtml( data, sliderTpl ));
@@ -168,12 +188,18 @@
 
         sliderListBox.delegate('button[data-id]', 'click', function(e){
             var button = $(e.target);
-            $.getJSON('data/agree-request.json?userId='+myUserId, function(remoteData){
-                if( remoteData.code === 200 && remoteData.results ){
-                    //requestToMeList();
-                    sliderListBox.hide();
-                    resetHeight();
-                    alert('进入聊天');
+
+            momentBiz.ajax({
+                functions : 'agreeRequest',
+                data : {"userId": momentBiz.getUserName() ,"toUserId":button.data('id')},
+                success : function( remoteData ){
+                    if( remoteData.code === 200 && remoteData.results ){
+                        sliderListBox.hide();
+                        resetHeight();
+                        alert('进入聊天');
+                    }
+                },
+                error: function(xhr, type){
                 }
             });
         });
@@ -186,10 +212,17 @@
             if( button.attr('data-time') ){
                 return;
             }
-            $.getJSON('data/request-to-someone.json?userId='+myUserId+'&toUserId='+button.data('id'), function(remoteData){
-                if( remoteData.code === 200 && remoteData.results ){
-                    button.attr('data-time',Date.now());
-                    timer();
+
+            momentBiz.ajax({
+                functions : 'requestToSomeone',
+                data : {"userId": momentBiz.getUserName() ,"toUserId":button.data('id')},
+                success : function( remoteData ){
+                    if( remoteData.code === 200 && remoteData.results ){
+                        button.attr('data-time',Date.now());
+                        timer();
+                    }
+                },
+                error: function(xhr, type){
                 }
             });
         });

@@ -10,12 +10,13 @@
     <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1420300224_9331315.css"/>
 
     <script type="text/javascript" src="style/js/zepto.js"></script>
+    <script type="text/javascript" src="style/js/biz.js"></script>
 </head>
 <body class="page-signin">
     <div data-role="page">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" id="username" placeholder="用户名" />
+                <input type="text" id="phone" placeholder="手机号码" />
                 <input type="password" id="password" placeholder="密码" />
                 <button data-type="signin" class="ui-button ui-button-green signin-button">登录</button>
                 <button data-type="signup" class="ui-button signup-button">注册</button>
@@ -24,10 +25,20 @@
         </div>
     </div>
     <script>
+        localStorage.setItem('moment-username','kitty');
         $('[data-type="signin"]').on('click',function( e ){
-            $.getJSON('data/signin.json?type=', function(remoteData){
-                if( remoteData.code === 200 && remoteData.result.success ){
-                    location.href = "index.html";
+            momentBiz.ajax({
+                data : {
+                    "phone":$('#phone').val(),
+                    "password":$('#password').val()
+                },
+                functions : 'login',
+                success : function( remoteData ){
+                    if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
+                        location.href = "index.html";
+                    }
+                },
+                error: function(xhr, type){
                 }
             });
             e.stopPropagation();
