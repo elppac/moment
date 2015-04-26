@@ -54,7 +54,7 @@ var momentBiz = {
             times = setTimeout(function(){
                 if( !boo ){
                     boo = true;
-                    callback( localStorage.getItem('moment-location') );
+                    callback( localStorage.getItem('moment-location').split(',') );
                 }
             },2000);
 

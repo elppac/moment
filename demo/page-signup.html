@@ -8,9 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style/css/reset.css"/>
     <link rel="stylesheet" type="text/css" href="style/css/main.css"/>
     <link rel="stylesheet" type="text/css" href="style/css/transition.min.css"/>
-
     <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1420300224_9331315.css"/>
-
     <script type="text/javascript" src="style/js/zepto.js"></script>
     <script type="text/javascript" src="style/js/AV.push.js"></script>
     <script type="text/javascript" src="style/js/transition.min.js"></script>
@@ -21,15 +19,16 @@
         <div class="content-wrap">
             <div class="content-inner">
                 <input type="text" id="username" data-validator-element="checkUserName" placeholder="用户名" value="kitty"/>
-                <a data-validator="checkUserName" transition="slide" class="next-button" href="#page-mobile">Next</a>
+                <a data-validator="checkUserName" transition="slide" class="next-button" href="#page-gender">Next</a>
             </div>
         </div>
     </div>
-    <div id="page-avatar" data-role="page" data-title="用户头像">
+    <div id="page-gender" data-role="page" data-title="性别">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="file" id="avatar" placeholder="头像"/>
-                <a data-validator="avatar" transition="slide" class="next-button" href="#page-mobile">Next</a>
+                <label><input type="radio" name="gender" value="0" checked /> 女</label>
+                <label><input type="radio" name="gender" value="1" /> 男</label>
+                <a transition="slide" class="next-button" href="#page-mobile">Next</a>
             </div>
         </div>
     </div>
@@ -64,6 +63,7 @@
                 data : {
                     "phone": $('#phone').val(),
                     "username": $('#username').val(),
+                    "gender": $('[name=gender]:checked').val(),
                     "password": $('#password').val()
                 },
                 functions : 'regesterOnline',
@@ -87,12 +87,21 @@
                 data = {};
 
             data[ipt.prop('id')] = ipt.val();
+            if( type === 'sendVerifyCode' ){
+                data["password"] =  $('#password').val();
+            }
             momentBiz.ajax({
                 data : data,
                 functions : type,
                 success : function( remoteData ){
-                    //console.log( elm.attr('href') );
-                    if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
+                    if( remoteData &&
+                            (
+                                    remoteData.result.code === 200 ||
+                                    (remoteData.result.code === 1 && remoteData.result.message ) )
+                            ){
+                        if( remoteData.result.results === 1 && type === 'checkUserName'){
+                            return;
+                        }
                         var href = elm.attr('href');
                         if( href.indexOf('#') === 0 ){
                             if( href === '#page-signup-successful'){

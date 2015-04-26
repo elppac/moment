@@ -112,6 +112,9 @@
             $(data).each(function(){
                 this.genderString = (this.gender==='0') ? 'w' : 'm';
                 this.distanceString = (this.distance.length>0) ? Math.round(this.distance[0]*100)/100 : 0;
+                this.image = {
+                    "name": "avatar/1.jpg"
+                };
                 items.push( $.parseTpl(tpl, this) );
             });
             return items.join('');
@@ -127,8 +130,8 @@
                 functions : type,
                 data : data,
                 success : function( remoteData ){
-                    if( remoteData.code === 200 && remoteData.results.length>0 ){
-                        callback( remoteData.results  );
+                    if( remoteData && remoteData.result && remoteData.result.code === 200 && remoteData.result.results.length>0 ){
+                        callback( remoteData.result.results  );
                     }else{
                         callback( []  );
                     }
@@ -156,8 +159,10 @@
 
         momentBiz.getLocation(function( loc ){
             getData('queryUmberOnes',{
-                latitude : loc[0],
-                longitude : loc[1]
+                latitude : 39.926512,//loc[0],
+                longitude : 116.403344,//loc[1],
+                "limitNum":50,
+                "specialDistance":5000
             },function( data ){
                 dataListBox.html( builderHtml( data, tpl ));
             });
