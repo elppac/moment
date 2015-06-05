@@ -100,8 +100,7 @@
 
 
     (function(){
-        var myUserId = 'x',
-            dataListBox = $('#dataList'),
+        var dataListBox = $('#dataList'),
             sliderListBox = $('#sliderList'),
             refreshBox = $('#refresh'),
             tpl = $('#list-tpl').html(),
@@ -111,7 +110,13 @@
             var items = [];
             $(data).each(function(){
                 this.genderString = (this.gender==='0') ? 'w' : 'm';
-                this.distanceString = (this.distance.length>0) ? Math.round(this.distance[0]*100)/100 : 0;
+
+                try{
+                    this.distanceString = (this.distance.length>0) ? Math.round(this.distance[0]*100)/100 : 0;
+                }catch(e){
+                    this.distanceString = '';
+                }
+
                 this.image = {
                     "name": "avatar/1.jpg"
                 };
@@ -130,8 +135,14 @@
                 functions : type,
                 data : data,
                 success : function( remoteData ){
-                    if( remoteData && remoteData.result && remoteData.result.code === 200 && remoteData.result.results.length>0 ){
-                        callback( remoteData.result.results  );
+                    if( remoteData && remoteData.result && remoteData.result.code === 200 ){
+                        if( remoteData.result.results.results && remoteData.result.results.results.length >0 ){
+                            callback( remoteData.result.results.results  );
+                        }else if( remoteData.result.results.length > 0 ){
+                            callback( remoteData.result.results  );
+                        }else{
+                            callback( []  );
+                        }
                     }else{
                         callback( []  );
                     }
@@ -148,7 +159,10 @@
                 momentBiz.getLocation(function( loc ){
                     getData('queryUmberOnes',{
                         latitude : loc[0],
-                        longitude : loc[1]
+                        longitude : loc[1],
+                        "limitNum":50,
+                        "specialDistance":5000,
+                        "currentUserName":momentBiz.getUserName()
                     },function( data ){
                         dataListBox[dir == 'up' ? 'prepend' : 'append']( builderHtml( data, tpl ));
                         me.afterDataLoading();    //数据加载完成后改变状态
@@ -156,36 +170,49 @@
                 });
             }
         });
-
+//{"latitude": 30.192042, "longitude": 120.186264, "limitNum": 50, "specialDistance": 5000}
         momentBiz.getLocation(function( loc ){
             getData('queryUmberOnes',{
-                latitude : 39.926512,//loc[0],
-                longitude : 116.403344,//loc[1],
+                latitude : loc[0],
+                longitude : loc[1],
                 "limitNum":50,
-                "specialDistance":5000
+                "specialDistance":5000,
+                "currentUserName":momentBiz.getUserName()
             },function( data ){
                 dataListBox.html( builderHtml( data, tpl ));
             });
         });
 
 
-
+        var cacheReauestToMeData = '';
         function requestToMeList(){
-            getData('queryRequestToMeList',{
-                "userId":momentBiz.getUserName(),
-                "offset":0,
-                "count":1
-            },function( data ){
-                if( data.length > 0 ){
-                    sliderListBox.show();
-                    sliderListBox.html( builderHtml( data, sliderTpl ));
-                    sliderListBox.slider();
-                    var dots = sliderListBox.find('.ui-slider-dots');
-                    dots.css('right',(sliderListBox.width() - dots.width())/2);
-                }else{
-                    sliderListBox.hide();
-                }
-                resetHeight();
+            momentBiz.getLocation(function( loc ){
+                getData('queryRequestToMeList',{
+                    latitude : loc[0],
+                    longitude : loc[1],
+                    "userId":momentBiz.getUserName(),
+                    "offset":0,
+                    "count":1
+                },function( data ){
+                    if( cacheReauestToMeData != JSON.stringify(data) ){
+                        cacheReauestToMeData = JSON.stringify(data);
+                    }else{
+                        return;
+                    }
+                    if( data.length > 0 ){
+                        sliderListBox.show();
+                        sliderListBox.html( builderHtml( data, sliderTpl ));
+                        sliderListBox.slider();
+                        var dots = sliderListBox.find('.ui-slider-dots');
+                        dots.css('right',(sliderListBox.width() - dots.width())/2);
+                    }else{
+                        sliderListBox.hide();
+                    }
+                    resetHeight();
+                });
+                setTimeout(function(){
+                    requestToMeList();
+                },5000);
             });
         }
         requestToMeList();
@@ -196,12 +223,12 @@
 
             momentBiz.ajax({
                 functions : 'agreeRequest',
-                data : {"userId": momentBiz.getUserName() ,"toUserId":button.data('id')},
+                data : {"userId":button.data('id')  ,"toUserId":momentBiz.getUserName()},
                 success : function( remoteData ){
-                    if( remoteData.code === 200 && remoteData.results ){
+                    if( remoteData && remoteData.result && remoteData.result.code === 200){
                         sliderListBox.hide();
                         resetHeight();
-                        alert('进入聊天');
+                        location.href="myself.html?userId="+button.data('id')+"&toUserId="+momentBiz.getUserName();
                     }
                 },
                 error: function(xhr, type){
@@ -222,7 +249,7 @@
                 functions : 'requestToSomeone',
                 data : {"userId": momentBiz.getUserName() ,"toUserId":button.data('id')},
                 success : function( remoteData ){
-                    if( remoteData.code === 200 && remoteData.results ){
+                    if( remoteData && remoteData.result && remoteData.result.code === 200){
                         button.attr('data-time',Date.now());
                         timer();
                     }
@@ -231,7 +258,6 @@
                 }
             });
         });
-
 
         var times = -1;
         function timer(){

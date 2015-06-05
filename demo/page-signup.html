@@ -69,6 +69,7 @@
                 functions : 'regesterOnline',
                 success : function( remoteData ){
                     if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
+                        localStorage.setItem('moment-username',remoteData.result.results.username);
                         callback(true);
                     }else{
                         callback(false);

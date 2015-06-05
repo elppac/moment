@@ -36,6 +36,9 @@
     <script type="text/javascript" src="style/js/gmu/widget/slider/$autoplay.js"></script>
     <script type="text/javascript" src="style/js/gmu/widget/slider/$lazyloadimg.js"></script>
     <script type="text/javascript" src="style/js/gmu/widget/slider/imgzoom.js"></script>
+
+
+    <script type="text/javascript" src="style/js/biz.js"></script>
 </head>
 <body>
 <div class="home-page">
@@ -48,16 +51,6 @@
         </div>
     </header>
     <div class="ui-refresh" id="refresh">
-        <div class="user-info">
-            <div class="img-wrap">
-                <div class="img" style="background-image:url(avatar/1.jpg);">
-                </div>
-            </div>
-            <dl>
-                <dt><%=username%></dt>
-                <dd class="content"><span class="age"><i class="iconfont icon-<%=genderString%>"></i></span></dd>
-            </dl>
-        </div>
     </div>
     <footer>
         <nav class="toolbar toolbar-col2 util-clearfix">
@@ -72,25 +65,47 @@
         </nav>
     </footer>
 </div>
+
+<script type="text/x-handlebars-template" id="tpl">
+    <div class="user-info">
+        <div class="img-wrap">
+            <div class="img" style="background-image:url(<%=image.name%>);">
+            </div>
+        </div>
+        <dl>
+            <dt><%=username%></dt>
+            <dd class="content"><span class="age"><i class="iconfont icon-<%=genderString%>"></i></span></dd>
+        </dl>
+    </div>
+</script>
+
+
 <script type="text/javascript">
 
 
     (function(){
-        var myUserId = 'x',
-                dataListBox = $('#dataList'),
-                sliderListBox = $('#sliderList'),
-                refreshBox = $('#refresh'),
-                tpl = $('#list-tpl').html(),
-                sliderTpl = $('#slider-tpl').html();
+        var dataListBox = $('#dataList'),
+            sliderListBox = $('#sliderList'),
+            refreshBox = $('#refresh'),
+            tpl = $('#tpl').html();
 
-        function builderHtml( data, tpl ){
-            var items = [];
-            $(data).each(function(){
-                this.genderString = (this.gender==='0') ? 'w' : 'm';
-                this.distanceString = (this.distance.length>0) ? Math.round(this.distance[0]*100)/100 : 0;
-                items.push( $.parseTpl(tpl, this) );
-            });
-            return items.join('');
+        function builderHtml( data ){
+
+            debugger;
+            data.genderString = (data.gender==='0') ? 'w' : 'm';
+
+            try{
+                data.distanceString = (data.distance.length>0) ? Math.round(data.distance[0]*100)/100 : 0;
+            }catch(e){
+                data.distanceString = '';
+            }
+
+            data.image = {
+                "name": "avatar/1.jpg"
+            };
+
+
+            return refreshBox.html($.parseTpl(tpl, data));
         }
 
         function resetHeight(){
@@ -100,11 +115,17 @@
         var refresh = $('.ui-refresh').refresh();
         resetHeight();
 
-        $.getJSON('data/', function(remoteData){
-            if( remoteData.code === 200 && remoteData.results.length>0 ){
-                callback( remoteData.results  );
-            }else{
-                callback( []  );
+
+
+        momentBiz.ajax({
+            functions : 'showDetail',
+            data : {"userId": "55557b5de4b076f1c352d3cb"},
+            success : function( remoteData ){
+                if( remoteData && remoteData.result && remoteData.result.code === 200){
+                    builderHtml( remoteData.result.results );
+                }
+            },
+            error: function(xhr, type){
             }
         });
     })();

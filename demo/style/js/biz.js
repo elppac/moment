@@ -51,21 +51,25 @@ var momentBiz = {
 
     getLocation : function( callback ){
         var boo = false,
+            roundLoc = function( loc ){
+                return [Math.round(loc[0]*1000000)/1000000,Math.round(loc[1]*1000000)/1000000]
+
+            },
             times = setTimeout(function(){
                 if( !boo ){
                     boo = true;
-                    callback( localStorage.getItem('moment-location').split(',') );
+                    callback( roundLoc(localStorage.getItem('moment-location').split(',')) );
                 }
             },2000);
 
         navigator.geolocation.getCurrentPosition(
             function(position){
                 if( position ){
-                    localStorage.getItem([position.coords.latitude,position.coords.longitude])
+                    localStorage.getItem(roundLoc([position.coords.latitude,position.coords.longitude]))
                 }
                 if( !boo ){
                     clearTimeout( times );
-                    callback([position.coords.latitude,position.coords.longitude]);
+                    callback(roundLoc([position.coords.latitude,position.coords.longitude]));
                 }
             }
         )

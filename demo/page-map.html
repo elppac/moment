@@ -283,15 +283,16 @@
             momentBiz.ajax({
                 functions : 'saveRoute',
                 data : {
-                    "saveRoute": momentBiz.getUserName(),
-                    "startLatitude": startAddressElement.attr('data-location').split(',')[0],
-                    "startLongitude": startAddressElement.attr('data-location').split(',')[1],
-                    "endLatitude": endAddressElement.attr('data-location').split(',')[0],
-                    "endLongitude": endAddressElement.attr('data-location').split(',')[1]
+                    "username": momentBiz.getUserName(),
+                    "startLatitude": parseFloat(startAddressElement.attr('data-location').split(',')[0]),
+                    "startLongitude": parseFloat(startAddressElement.attr('data-location').split(',')[1]),
+                    "endLatitude": parseFloat(endAddressElement.attr('data-location').split(',')[0]),
+                    "endLongitude": parseFloat(endAddressElement.attr('data-location').split(',')[1])
                 },
                 success : function( remoteData ){
                     console.log( 'saveRoute', remoteData );
                     if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
+                        debugger;
                         location.href = 'page-main.html';
                     }
                 },
