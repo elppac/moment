@@ -16,10 +16,11 @@
     <script type="text/javascript" src="style/js/validator.js"></script>
 </head>
 <body class="page-signup">
+<form id="form" method="get" action="">
     <div id="page-username" data-role="page">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" id="username" data-validator-element="checkUserName" placeholder="用户名" value=""/>
+                <input type="text" id="username" data-validator-element="checkUserName" placeholder="用户名" value="" required/>
                 <a data-validator="checkUserName" transition="slide" class="next-button" href="#page-gender">Next</a>
             </div>
         </div>
@@ -36,8 +37,8 @@
     <div id="page-mobile" data-role="page" data-title="手机号">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" value="" id="phone" data-validator-element="sendVerifyCode" placeholder="手机号"/>
-                <input type="password" value="" id="password" placeholder="密码"/>
+                <input type="mobile" value="" id="phone" data-validator-element="sendVerifyCode" placeholder="手机号"  required/>
+                <input type="password" value="" id="password" placeholder="密码" required/>
                 <a data-validator="sendVerifyCode" transition="slide" class="next-button" href="#page-verification">Next</a>
             </div>
         </div>
@@ -45,7 +46,7 @@
     <div id="page-verification" data-role="page" data-title="手机验证">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" value="" id="code" data-validator-element="handleVerifyCode" placeholder="验证码"/>
+                <input type="text" value="" id="code" data-validator-element="handleVerifyCode" placeholder="验证码" required/>
                 <a data-validator="handleVerifyCode" transition="slide" class="next-button" href="#page-signup-successful">Next</a>
             </div>
         </div>
@@ -58,7 +59,19 @@
             </div>
         </div>
     </div>
+</form>
     <script>
+        var valid = true,
+            $error = $('.error-box');
+
+        $('#form').validator({
+            isErrorOnParent : false,
+            errorCallback : function(unvalidFields){
+                valid = false;
+            }
+        });
+
+
         function signup( callback ){
             momentBiz.ajax({
                 data : {

@@ -413,8 +413,7 @@ footer{
 .page-signup{
 
 }
-.page-signup input[type="text"],
-.page-signup input[type="password"]{
+.page-signup input[type]{
     border: 1px solid #DDD;
     padding: 15px 10px;
     width: 100%;
