@@ -90,8 +90,6 @@
             tpl = $('#tpl').html();
 
         function builderHtml( data ){
-
-            debugger;
             data.genderString = (data.gender==='0') ? 'w' : 'm';
 
             try{
@@ -115,11 +113,23 @@
         var refresh = $('.ui-refresh').refresh();
         resetHeight();
 
+        var searchObject = {};
+        if( location.search.length > 1){
+            location.search.substring(1).split('&').forEach(function( item ){
+                var kv = item.split('=');
+                searchObject[kv[0]]=kv[1];
+            });
+        }
 
+
+        var userid = momentBiz.getUserName();
+        if(!$.isEmptyObject(searchObject)){
+            userid = searchObject.toUserId;
+        }
 
         momentBiz.ajax({
             functions : 'showDetail',
-            data : {"userId": "55557b5de4b076f1c352d3cb"},
+            data : {"userId":userid },
             success : function( remoteData ){
                 if( remoteData && remoteData.result && remoteData.result.code === 200){
                     builderHtml( remoteData.result.results );

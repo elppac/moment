@@ -244,14 +244,14 @@
             if( button.attr('data-time') ){
                 return;
             }
-
+            agreeTimer();
             momentBiz.ajax({
                 functions : 'requestToSomeone',
                 data : {"userId": momentBiz.getUserName() ,"toUserId":button.data('id')},
                 success : function( remoteData ){
                     if( remoteData && remoteData.result && remoteData.result.code === 200){
                         button.attr('data-time',Date.now());
-                        timer();
+                        sendTimer();
                     }
                 },
                 error: function(xhr, type){
@@ -259,8 +259,8 @@
             });
         });
 
-        var times = -1;
-        function timer(){
+        var sentTimes = -1;
+        function sendTimer(){
             var now = Date.now();
                 buttons = dataListBox.find('button[data-time]'),
                 hasRequset = false;
@@ -281,13 +281,35 @@
                 }
             });
             if( hasRequset ){
-                try{ clearTimeout( times ); }catch(e){}
-                times = setTimeout(function(){
-                    timer();
+                try{ clearTimeout( sentTimes ); }catch(e){}
+                sentTimes = setTimeout(function(){
+                    sendTimer();
                 },1000);
             }
         }
-        timer();
+        sendTimer();
+
+        var agreeTimes = -10;
+        function agreeTimer(){
+            momentBiz.ajax({
+                functions : 'queryAgreeRelationShip',
+                data : {"currentUserName": momentBiz.getUserName()},
+                success : function( remoteData ){
+                    if( remoteData && remoteData.result && remoteData.result.code === 200){
+                        if( remoteData.result.results.status === 1 ){
+                            try{ clearTimeout( agreeTimes ); }catch(e){}
+                            agreeTimes = setTimeout(function(){
+                                agreeTimer();
+                            },1000);
+                        }else if( remoteData.result.results.status === 3 ){
+                            location.href="myself.html?userId="+momentBiz.getUserName()+"&toUserId="+remoteData.result.results.fromUser;
+                        }
+                    }
+                },
+                error: function(xhr, type){
+                }
+            });
+        }
     })();
 </script>
 </body>

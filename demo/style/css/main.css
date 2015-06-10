@@ -444,10 +444,8 @@ footer{
 
 /*signup*/
 .page-signin{
-
 }
-.page-signin input[type="text"],
-.page-signin input[type="password"]{
+.page-signin input[type]{
     border: 1px solid #DDD;
     padding: 15px 10px;
     width: 100%;
@@ -541,4 +539,18 @@ footer{
 }
 .user-info li dd.content span{
     vertical-align: middle;
+}
+
+
+#form input.error{
+    border-color:#f02914;
+}
+
+.error-box{
+    border: 1px solid #F02914;
+    color: #F02914;
+    margin-top: 20px;
+    clear: both;
+    padding: 10px;
+    display: none;
 }

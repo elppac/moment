@@ -10,22 +10,48 @@
     <link rel="stylesheet" type="text/css" href="http://at.alicdn.com/t/font_1420300224_9331315.css"/>
 
     <script type="text/javascript" src="style/js/zepto.js"></script>
+
+    <script type="text/javascript" src="style/js/validator.js"></script>
+
     <script type="text/javascript" src="style/js/biz.js"></script>
 </head>
 <body class="page-signin">
     <div data-role="page">
         <div class="content-wrap">
             <div class="content-inner">
-                <input type="text" id="phone" placeholder="手机号码" />
-                <input type="password" id="password" placeholder="密码" />
-                <button data-type="signin" class="ui-button ui-button-green signin-button">登录</button>
-                <button data-type="signup" class="ui-button signup-button">注册</button>
-                <!--<button>忘记密码？</button>-->
+                <form id="form" method="get" action="">
+                    <input type="mobile" id="phone" placeholder="手机号码" required/>
+                    <input type="password" id="password" placeholder="密码" required/>
+                    <button data-type="signin" class="ui-button ui-button-green signin-button">登录</button>
+                    <button data-type="signup" class="ui-button signup-button">注册</button>
+                    <div class="util-clearfix"></div>
+                    <div class="error-box ">
+                        请确认手机号码和密码
+                    </div>
+                    <!--<button>忘记密码？</button>-->
+                </form>
             </div>
         </div>
     </div>
     <script>
+        var valid = true,
+            $error = $('.error-box');
+
+        $('#form').validator({
+            isErrorOnParent : false,
+            errorCallback : function(unvalidFields){
+                valid = false;
+            }
+        });
+
         $('[data-type="signin"]').on('click',function( e ){
+            $error.hide();
+
+            valid = true
+            $('#form').trigger('submit');
+            if( !valid ){
+                return;
+            }
             momentBiz.ajax({
                 data : {
                     "phone":$('#phone').val(),
@@ -36,9 +62,12 @@
                     if( remoteData && remoteData.result.code === 200 && remoteData.result.results ){
                         localStorage.setItem('moment-username',remoteData.result.results.username);
                         location.href = "index.html";
+                    }else{
+                        $error.show();
                     }
                 },
                 error: function(xhr, type){
+                    $error.show();
                 }
             });
             e.stopPropagation();
